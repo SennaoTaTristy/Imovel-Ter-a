@@ -4,11 +4,10 @@ from bson.objectid import ObjectId
 
 app = Flask(__name__)
 
-# Configurando o MongoDB Atlas
 mongo_uri = 'mongodb+srv://Carlos:Carlos3040@tabsks.h7pwx.mongodb.net/?retryWrites=true&w=majority&appName=tabsks'
 client = MongoClient(mongo_uri)
-db = client['task_manager_db']  # Nome do banco de dados
-tasks_collection = db['tasks']  # Nome da coleção
+db = client['task_manager_db'] 
+tasks_collection = db['tasks']  
 
 @app.route('/')
 def index():
