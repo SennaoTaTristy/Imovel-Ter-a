@@ -1,24 +1,62 @@
 body {
+    background: linear-gradient(to bottom, #ffcc33, #003366);
     font-family: Arial, sans-serif;
-    margin: 20px;
+    color: white;
 }
 
-#task-form {
-    margin-bottom: 20px;
+.container {
+    margin: 0 auto;
+    padding: 20px;
+    width: 320px;
+    text-align: center;
+    border-radius: 10px;
+    background-color: #001f3f;
 }
 
-.task {
-    border: 1px solid #ccc;
+input[type="text"], input[type="password"], input[type="email"], input[type="datetime-local"] {
+    width: 90%;
     padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+    background: #f0f0f0;
 }
 
-.progress-bar {
-    width: 100%;
+button {
+    padding: 10px 20px;
+    background-color: #ffcc33;
+    border: none;
+    color: black;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 10px;
 }
 
-.completed {
-    color: green;
-    font-weight: bold;
+button:hover {
+    background-color: #ffc107;
 }
+
+h1 {
+    color: #ffcc33;
+    font-size: 24px;
+}
+
+.lembrete-card {
+    background-color: #fff;
+    color: black;
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px #333;
+}
+
+.botao-concluir {
+    background-color: #28a745;
+    color: white;
+}
+
+.botao-excluir {
+    background-color: #dc3545;
+    color: white;
+}
+
