@@ -5,17 +5,10 @@ from bson import ObjectId
 
 app = Flask(__name__)
 
-<<<<<<< HEAD
-mongo_uri = 'mongodb+srv://Carlos:Carlos3040@tabsks.h7pwx.mongodb.net/?retryWrites=true&w=majority&appName=tabsks'
-client = MongoClient(mongo_uri)
-db = client['task_manager_db'] 
-tasks_collection = db['tasks']  
-=======
 # Configuração do MongoDB
 app.config["MONGO_URI"] = 'mongodb+srv://Carlos:Carlos3040@tabsks.h7pwx.mongodb.net/tabsks?retryWrites=true&w=majority'
 app.secret_key = "supersecretkey"  # Adicione uma chave secreta para usar mensagens flash
 mongo = PyMongo(app)
->>>>>>> ab15930 (Beta dia 05-09-2024. Mudanças na interfaçe, melhorias no banco de dados e implementação de novas telas.)
 
 # Rota para a página principal que lista as tarefas
 @app.route('/')
