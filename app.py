@@ -1,102 +1,157 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
-from flask_pymongo import PyMongo
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, redirect, session, url_for
+from pymongo import MongoClient
 from bson import ObjectId
+from flask_mail import Mail, Message
+import ssl
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'
 
 # Configuração do MongoDB
-app.config["MONGO_URI"] = 'mongodb+srv://Carlos:Carlos3040@tabsks.h7pwx.mongodb.net/tabsks?retryWrites=true&w=majority'
-app.secret_key = "supersecretkey"  # Adicione uma chave secreta para usar mensagens flash
-mongo = PyMongo(app)
+mongo_uri = "mongodb+srv://Carlos:Carlos3040@aula.h7pwx.mongodb.net/?retryWrites=true&w=majority&appName=Aula"
+client = MongoClient(mongo_uri, tlsAllowInvalidCertificates=True)
+db = client['task_manager']
 
-# Rota para a página principal que lista as tarefas
+# Configuração do Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = 'codigopythonflask@gmail.com'
+app.config['MAIL_PASSWORD'] = 'ynnj cyxl ruyu lbou'
+app.config['MAIL_DEFAULT_SENDER'] = 'codigopythonflask@gmail.com'
+
+mail = Mail(app)
+
+# Rota principal
 @app.route('/')
 def index():
-    tarefas = mongo.db.tarefas.find()  # Carregar as tarefas
-    return render_template('index.html', tarefas=tarefas)
+    if 'user_id' in session:
+        return redirect(url_for('tasks'))
+    return redirect(url_for('login'))
 
-# Rota para adicionar tarefas
-@app.route('/add_task', methods=['POST'])
-def add_task():
-    if request.method == 'POST':
-        titulo = request.form.get('titulo')
-        notas = request.form.get('notas')
-        if titulo and notas:
-            nova_tarefa = {
-                'titulo': titulo,
-                'notas': notas,
-                'progresso': 0  # Inicialmente 0%
-            }
-            mongo.db.tarefas.insert_one(nova_tarefa)
-        return redirect(url_for('index'))
-
-# Rota para atualizar o progresso da tarefa
-@app.route('/update_progress/<task_id>', methods=['POST'])
-def update_progress(task_id):
-    tarefa = mongo.db.tarefas.find_one({'_id': ObjectId(task_id)})
-    novo_progresso = min(tarefa['progresso'] + 10, 100)  # Aumenta o progresso em 10%, até 100%
-    mongo.db.tarefas.update_one({'_id': ObjectId(task_id)}, {'$set': {'progresso': novo_progresso}})
-    return redirect(url_for('index'))
-
-# Rota para marcar uma tarefa como completa
-@app.route('/complete_task/<task_id>', methods=['POST'])
-def complete_task(task_id):
-    mongo.db.tarefas.update_one({'_id': ObjectId(task_id)}, {'$set': {'progresso': 100}})
-    return redirect(url_for('index'))
-
-# Rota para página de Login
+# Rota de login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
+        user = db.users.find_one({'username': username, 'password': password})
 
-        user = mongo.db.users.find_one({"username": username})
-
-        if user and check_password_hash(user['password'], password):
-            flash('Login efetuado com sucesso!')
-            return redirect(url_for('index'))
-        else:
-            flash('Usuário ou senha incorretos!')
-            return redirect(url_for('login'))
-
+        if user:
+            if not user.get('is_verified', False):
+                return 'Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.'
+            
+            session['user_id'] = str(user['_id'])
+            return redirect(url_for('tasks'))
+        return 'Usuário ou senha inválidos.'
     return render_template('login.html')
 
-# Rota para página de Registro
+# Rota de registro
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        email = request.form.get('email')
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
 
-        # Verifica se o usuário já existe
-        existing_user = mongo.db.users.find_one({"username": username})
-        
-        if existing_user:
-            flash('Usuário já existente!')
-            return redirect(url_for('register'))
+        # Verifica duplicidade
+        if db.users.find_one({'email': email}):
+            return 'E-mail já registrado.'
 
-        # Cria o hash da senha
-        hashed_password = generate_password_hash(password)
+        user_id = db.users.insert_one({
+            'username': username,
+            'email': email,
+            'password': password,
+            'is_verified': False
+        }).inserted_id
 
-        # Insere o novo usuário no MongoDB
-        mongo.db.users.insert_one({
-            "username": username,
-            "password": hashed_password,
-            "email": email
-        })
-
-        flash('Registro efetuado com sucesso! Faça login.')
-        return redirect(url_for('login'))
-
+        # Envia e-mail de validação
+        token = str(user_id)
+        confirm_url = url_for('confirm_email', token=token, _external=True)
+        msg = Message(
+            subject='Confirmação de Cadastro',
+            recipients=[email],
+            html=f"""
+            <h1>Bem-vindo, {username}!</h1>
+            <p>Por favor, clique no link abaixo para validar seu cadastro:</p>
+            <a href="{confirm_url}">Validar E-mail</a>
+            """
+        )
+        mail.send(msg)
+        return 'Registro efetuado com sucesso! Verifique seu e-mail para confirmar o cadastro.'
     return render_template('register.html')
 
-# Rota para página de Categorias
-@app.route('/categories')
-def categories():
-    return render_template('categories.html')
+# Rota de confirmação de e-mail
+@app.route('/confirm_email/<token>')
+def confirm_email(token):
+    user = db.users.find_one({'_id': ObjectId(token)})
+
+    if not user:
+        return 'Token inválido.'
+    
+    db.users.update_one({'_id': ObjectId(token)}, {'$set': {'is_verified': True}})
+    return 'E-mail confirmado com sucesso!'
+
+# Rota de logout
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
+
+# Rota de tarefas
+@app.route('/tasks')
+def tasks():
+    if 'user_id' in session:
+        user_tasks = list(db.tasks.find({'user_id': session['user_id']}))
+        for task in user_tasks:
+            task['_id'] = str(task['_id'])
+        return render_template('tasks.html', tasks=user_tasks)
+    return redirect(url_for('login'))
+
+# Rota para comentários
+@app.route('/task_comments/<task_id>', methods=['GET'])
+def task_comments(task_id):
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
+    if task:
+        task['_id'] = str(task['_id'])
+    return render_template('task_comments.html', task=task)
+
+# Novo endpoint para adicionar comentário
+@app.route('/add_comment/<task_id>', methods=['POST'])
+def add_comment(task_id):
+    comment = request.form.get('comment')  # Obtém o comentário enviado pelo formulário
+    if comment:
+        db.tasks.update_one(
+            {'_id': ObjectId(task_id)},
+            {'$push': {'comments': comment}}
+        )
+    return redirect(url_for('task_comments', task_id=task_id))
+
+# Rota para alterar status da tarefa
+@app.route('/update_task_status/<task_id>/<status>', methods=['POST'])
+def update_task_status(task_id, status):
+    if status not in ['Pendente', 'Não Concluído', 'Concluído']:
+        return redirect(url_for('tasks'))
+    db.tasks.update_one({'_id': ObjectId(task_id)}, {'$set': {'status': status}})
+    return redirect(url_for('tasks'))
+
+# Rota para adicionar tarefa
+@app.route('/add_task', methods=['GET', 'POST'])
+def add_task():
+    if request.method == 'POST':
+        task_name = request.form['task_name']
+        description = request.form['description']
+        user_id = session['user_id']
+        db.tasks.insert_one({
+            'task_name': task_name,
+            'description': description,
+            'status': 'Pendente',
+            'user_id': user_id,
+            'comments': []
+        })
+        return redirect(url_for('tasks'))
+    return render_template('add_task.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

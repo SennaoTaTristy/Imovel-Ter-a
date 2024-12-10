@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categorias</title>
+    <title>Categories</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Categorias</h1>
+    <h2>Categories</h2>
     <ul>
-        <li>Categoria 1</li>
-        <li>Categoria 2</li>
-        <li>Categoria 3</li>
-        <li>Categoria 4</li>
+        {% for category in categories %}
+        <li>{{ category['name'] }}</li>
+        {% endfor %}
     </ul>
+    <a href="{{ url_for('tasks') }}">Back to Tasks</a>
 </body>
 </html>
