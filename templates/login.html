@@ -64,20 +64,31 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            width: 100%;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        a {
+        .register-button {
             margin-top: 1rem;
-            color: #007BFF;
             text-decoration: none;
         }
 
-        a:hover {
-            text-decoration: underline;
+        .register-button button {
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 1rem;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .register-button button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -88,13 +99,17 @@
         </div>
         <h1>Login</h1>
         <form method="POST" action="{{ url_for('login') }}">
-            <label for="username">Username:</label>
+            <label for="username">Usuário:</label>
             <input type="text" name="username" id="username" required>
-            <label for="password">Password:</label>
+            <label for="password">Senha:</label>
             <input type="password" name="password" id="password" required>
             <button type="submit">Login</button>
         </form>
-        <a href="{{ url_for('register') }}">Registre - se</a>
+        <div class="register-button">
+            <a href="{{ url_for('register') }}">
+                <button>Registre-se</button>
+            </a>
+        </div>
     </div>
 </body>
 </html>

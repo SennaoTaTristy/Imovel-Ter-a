@@ -101,10 +101,12 @@
 </head>
 <body>
     <div class="logo">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+        <a href="https://www.youtube.com/watch?v=1F3OGIFnW1k" target="_blank" style="text-decoration: none;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+        </a>
     </div>
     <div class="container">
-        <h1>Your Tasks</h1>
+        <h1>Minhas Tasks</h1>
 
         <div style="text-align: center;">
             <a href="{{ url_for('logout') }}">

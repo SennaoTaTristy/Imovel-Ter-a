@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Comments</title>
+    <title>Comentários Tasks</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
         body {
@@ -89,7 +89,8 @@
             border-radius: 4px;
             text-decoration: none;
             font-size: 1rem;
-            margin-bottom: 1rem;
+            margin-top: 1rem;
+            text-align: center;
         }
 
         .btn-back:hover {
@@ -99,10 +100,14 @@
         form {
             text-align: center;
         }
+
+        .back-container {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container">        
         <div class="logo">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
         </div>
@@ -113,15 +118,20 @@
             </div>
             {% else %}
             <div class="grid-item">
-                <p>No comments yet.</p>
+                <p>Sem comentários.</p>
             </div>
             {% endfor %}
         </div>
         
         <form action="{{ url_for('add_comment', task_id=task['_id']) }}" method="POST">
             <textarea name="comment" rows="4" cols="50" placeholder="Add a comment..."></textarea><br>
-            <button type="submit">Add Comment</button>
+            <button type="submit">Adicionar comentário</button>
         </form>
+
+        <!-- Botão Voltar Centralizado -->
+        <div class="back-container">
+            <a href="{{ url_for('tasks') }}" class="btn-back">Voltar</a>
+        </div>
     </div>
 </body>
 </html>

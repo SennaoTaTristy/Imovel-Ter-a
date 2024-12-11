@@ -74,8 +74,9 @@ def register():
             recipients=[email],
             html=f"""
             <h1>Bem-vindo, {username}!</h1>
-            <p>Por favor, clique no link abaixo para validar seu cadastro:</p>
+            <p>Por favor, para continuar clique no botão abaixo:</p>
             <a href="{confirm_url}">Validar E-mail</a>
+            <p>Atenciosamente: Equipe Tabsks</p>
             """
         )
         mail.send(msg)
